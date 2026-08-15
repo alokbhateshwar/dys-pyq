@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -518,6 +518,606 @@ function closeViewer() {
   document.body.style.overflow = "";
 }
 viewerClose.addEventListener("click", closeViewer);
+viewerBackdrop.addEventListener("click", closeViewer);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !viewer.hidden) closeViewer(); });
+
+function escapeHTML(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html> -->
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PYQ Papers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0e0f16;
+    --panel: #1c2030;
+    --panel-hi: #262b3d;
+    --border: rgba(237,234,225,0.09);
+    --text: #edeae1;
+    --text-dim: #9ca0b3;
+    --text-faint: #676c82;
+    --nutrition: #5fa98a;
+    --nutrition-soft: rgba(95,169,138,0.14);
+    --yoga: #e8a33d;
+    --yoga-soft: rgba(232,163,61,0.14);
+    --ease: cubic-bezier(.22,.68,.16,1);
+    --spring: cubic-bezier(.34,1.56,.64,1);
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ touch-action:manipulation; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Inter",sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+    overflow-x:hidden; touch-action:manipulation; position:relative;
+  }
+  .hindi{ font-family:"Noto Serif Devanagari", serif; }
+
+  /* ===================== ambient background ===================== */
+  .bg{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(60px); opacity:0.55; }
+  .blob-1{ width:420px; height:420px; top:-140px; left:-100px; background:var(--nutrition); animation: blobA 16s ease-in-out infinite; }
+  .blob-2{ width:380px; height:380px; top:-80px; right:-120px; background:var(--yoga); animation: blobB 18s ease-in-out infinite; }
+  .blob-3{ width:320px; height:320px; bottom:-160px; left:35%; background:#6d7fe8; opacity:0.22; animation: blobC 20s ease-in-out infinite; }
+  @keyframes blobA{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(60px,50px) scale(1.15); } }
+  @keyframes blobB{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-50px,60px) scale(1.1); } }
+  @keyframes blobC{ 0%,100%{ transform:translate(-50%,0) scale(1); } 50%{ transform:translate(-50%,-40px) scale(1.2); } }
+
+  .particle{
+    position:absolute; bottom:-20px; border-radius:50%; background:var(--text);
+    opacity:0; animation-name: float-up; animation-timing-function: linear; animation-iteration-count: infinite;
+  }
+  @keyframes float-up{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:0.5; }
+    90%{ opacity:0.35; }
+    100%{ transform:translateY(-110vh) translateX(var(--drift,20px)); opacity:0; }
+  }
+
+  .grid-overlay{
+    position:absolute; inset:0;
+    background-image: linear-gradient(rgba(237,234,225,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(237,234,225,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 50% 0%, black, transparent 70%);
+  }
+
+  /* ===================== header ===================== */
+  header{ position:relative; z-index:1; text-align:center; padding:54px 20px 26px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:8px; font-size:0.7rem; letter-spacing:0.16em;
+    text-transform:uppercase; color:var(--yoga); margin-bottom:22px; font-weight:700;
+    opacity:0; animation: fadeDown .7s var(--ease) .05s forwards;
+  }
+  .badge-dot{ width:6px; height:6px; border-radius:50%; background:var(--yoga); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot{ 0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(232,163,61,0.5); } 50%{ transform:scale(1.3); box-shadow:0 0 0 6px rgba(232,163,61,0); } }
+  .badge::after{ content:""; width:16px; height:1px; background:currentColor; opacity:0.5; }
+
+  .breath-wrap{ position:relative; width:100px; height:100px; margin:0 auto 22px; opacity:0; animation: fadeDown .7s var(--ease) .12s forwards; }
+  .breath{ width:100px; height:100px; }
+  .breath circle{ fill:none; stroke-width:1.3; transform-origin:50px 50px; }
+  .b1{ stroke:var(--nutrition); animation:breathe 6s ease-in-out infinite; }
+  .b2{ stroke:var(--yoga); animation:breathe 6s ease-in-out infinite 0.4s; }
+  .b3{ fill:var(--text); animation:core 6s ease-in-out infinite; }
+  .b4{ stroke:var(--text-faint); stroke-dasharray: 2 6; animation: spin 24s linear infinite; }
+  @keyframes breathe{ 0%,100%{ transform:scale(0.5); opacity:0.2; } 50%{ transform:scale(1); opacity:0.95; } }
+  @keyframes core{ 0%,100%{ transform:scale(0.6); } 50%{ transform:scale(1.3); } }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .orbit-dot{
+    position:absolute; width:6px; height:6px; border-radius:50%; background:var(--yoga);
+    top:50%; left:50%; margin:-3px; animation: orbit 5s linear infinite;
+    box-shadow:0 0 8px var(--yoga);
+  }
+  .orbit-dot.d2{ background:var(--nutrition); box-shadow:0 0 8px var(--nutrition); animation-duration:7s; animation-direction:reverse; }
+  @keyframes orbit{
+    from{ transform: rotate(0deg) translateX(46px) rotate(0deg); }
+    to{ transform: rotate(360deg) translateX(46px) rotate(-360deg); }
+  }
+
+  h1{
+    font-size:clamp(1.7rem,5vw,2.4rem); margin:0 0 12px; font-weight:800; letter-spacing:-0.02em;
+    background: linear-gradient(90deg, var(--text) 30%, var(--nutrition) 55%, var(--yoga) 75%, var(--text));
+    background-size: 250% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation: shine 7s linear infinite 1.1s;
+  }
+  h1 .word{ display:inline-block; opacity:0; transform:translateY(18px) rotateX(40deg); animation: wordIn .7s var(--spring) forwards; }
+  @keyframes wordIn{ to{ opacity:1; transform:translateY(0) rotateX(0); } }
+  @keyframes shine{ to{ background-position: -250% center; } }
+  header p{
+    color:var(--text-dim); margin:0; font-size:0.96rem;
+    opacity:0; animation: fadeUp .8s var(--ease) .55s forwards;
+  }
+  @keyframes fadeDown{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ===================== subject cards ===================== */
+  .subjects{
+    position:relative; z-index:1;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:16px;
+    padding:20px 20px 8px; max-width:760px; margin:0 auto; perspective:900px;
+  }
+  .subject-card{
+    flex:1 1 260px; max-width:320px; position:relative; overflow:hidden;
+    background:var(--panel); border:1px solid var(--border); border-radius:18px;
+    padding:28px 20px; cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    transition:transform .35s var(--spring), border-color .3s var(--ease), box-shadow .3s var(--ease);
+    opacity:0; transform:translateY(24px) scale(0.95);
+    animation:cardIn .7s var(--spring) forwards;
+    transform-style:preserve-3d;
+  }
+  .subject-card:nth-child(1){ animation-delay:.65s; }
+  .subject-card:nth-child(2){ animation-delay:.78s; }
+  @keyframes cardIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+
+  .subject-card::before{
+    content:""; position:absolute; inset:-1px; border-radius:19px; padding:1px;
+    background: conic-gradient(from var(--angle,0deg), transparent 0 70%, var(--glow-strong,rgba(255,255,255,0.5)) 85%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity:0; transition:opacity .3s var(--ease);
+    animation: rotate-border 3s linear infinite;
+  }
+  @keyframes rotate-border{ to{ --angle:360deg; } }
+  @property --angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  .subject-card:hover::before{ opacity:1; }
+  .subject-card::after{
+    content:""; position:absolute; inset:0; opacity:0; transition:opacity .35s var(--ease);
+    background: radial-gradient(200px 140px at 50% -10%, var(--glow, rgba(255,255,255,0.1)), transparent 70%);
+  }
+  .subject-card.dys-03{ --glow: rgba(95,169,138,0.28); --glow-strong: rgba(95,169,138,0.9); }
+  .subject-card.dys-04{ --glow: rgba(232,163,61,0.28); --glow-strong: rgba(232,163,61,0.9); }
+  .subject-card:active{ transform:scale(0.96) !important; }
+  .subject-card:hover{ transform:translateY(-6px) rotateX(4deg); }
+  .subject-card:hover::after{ opacity:1; }
+  .subject-card.dys-03:hover, .subject-card.dys-03.active{ border-color:var(--nutrition); box-shadow:0 20px 44px -22px var(--nutrition); }
+  .subject-card.dys-04:hover, .subject-card.dys-04.active{ border-color:var(--yoga); box-shadow:0 20px 44px -22px var(--yoga); }
+
+  .icon-wrap{
+    width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    position:relative; z-index:1; transition:transform .35s var(--spring);
+    animation: iconFloat 3.6s ease-in-out infinite;
+  }
+  .subject-card:nth-child(2) .icon-wrap{ animation-delay:0.4s; }
+  @keyframes iconFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  .subject-card:hover .icon-wrap{ transform:scale(1.15) rotate(-6deg); }
+  .dys-03 .icon-wrap{ background:var(--nutrition-soft); color:var(--nutrition); }
+  .dys-04 .icon-wrap{ background:var(--yoga-soft); color:var(--yoga); }
+  .icon-wrap svg{ animation: sway 4s ease-in-out infinite; transform-origin:bottom center; }
+  @keyframes sway{ 0%,100%{ transform:rotate(-3deg); } 50%{ transform:rotate(3deg); } }
+
+  .subject-name{ font-size:1.06rem; font-weight:700; position:relative; z-index:1; }
+  .subject-code{ font-size:0.72rem; color:var(--text-faint); letter-spacing:0.08em; position:relative; z-index:1; }
+
+  .count-pill{
+    position:relative; z-index:1; font-size:0.68rem; font-weight:700; padding:3px 10px; border-radius:20px;
+    background:var(--panel-hi); color:var(--text-faint); min-width:22px; transition: all .3s var(--spring);
+  }
+  .dys-03.active .count-pill{ background:var(--nutrition-soft); color:var(--nutrition); transform:scale(1.1); }
+  .dys-04.active .count-pill{ background:var(--yoga-soft); color:var(--yoga); transform:scale(1.1); }
+
+  /* ===================== main / files ===================== */
+  main{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding:30px 20px 60px; min-height:140px; }
+
+  .status{
+    text-align:center; color:var(--text-faint); font-size:0.9rem; padding:36px 10px;
+    opacity:0; animation: fadeUp .5s var(--ease) forwards; display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .spinner{
+    width:26px; height:26px; border-radius:50%;
+    border:2.5px solid var(--panel-hi); border-top-color:var(--yoga);
+    animation: spin 0.8s linear infinite;
+  }
+
+  .skeleton-row{
+    height:58px; border-radius:12px; margin-bottom:10px;
+    background: linear-gradient(100deg, var(--panel) 30%, var(--panel-hi) 50%, var(--panel) 70%);
+    background-size: 200% 100%;
+    opacity:0; animation: shimmer 1.3s ease-in-out infinite, fadeUp .4s var(--ease) forwards;
+  }
+  @keyframes shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+
+  .file-list{ display:flex; flex-direction:column; gap:10px; }
+  .file-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:15px 16px; position:relative; overflow:hidden;
+    opacity:0; transform:translateX(-18px) scale(0.98);
+    animation:slideIn .55s var(--spring) forwards;
+    transition: border-color .25s var(--ease), transform .2s var(--spring), box-shadow .25s var(--ease);
+  }
+  .file-row:hover{ border-color:var(--panel-hi); box-shadow:0 10px 26px -18px rgba(0,0,0,0.6); transform:translateX(2px); }
+  .file-row:active{ transform:scale(0.985); }
+  @keyframes slideIn{ to{ opacity:1; transform:translateX(0) scale(1); } }
+
+  .file-icon{
+    width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    background:var(--panel-hi); color:var(--text-faint); flex-shrink:0;
+  }
+  .file-main{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .file-name{ font-size:0.93rem; font-weight:500; word-break:break-word; line-height:1.4; }
+  .file-actions{ display:flex; gap:8px; flex-shrink:0; }
+
+  .btn{
+    border:none; cursor:pointer; text-decoration:none; font-family:inherit;
+    font-size:0.8rem; font-weight:700; padding:9px 15px; border-radius:9px;
+    transition:opacity .2s, transform .15s var(--spring), box-shadow .2s var(--ease);
+    touch-action:manipulation; -webkit-user-select:none; user-select:none;
+    position:relative; overflow:hidden;
+  }
+  .btn:active{ transform:scale(0.9); }
+  .btn-view{ background:var(--panel-hi); color:var(--text); }
+  .btn-view:hover{ opacity:0.85; }
+  .btn-dl.dys-03{ background:var(--nutrition); color:#0e1712; }
+  .btn-dl.dys-04{ background:var(--yoga); color:#1a1206; }
+  .btn-dl:hover{ opacity:0.9; box-shadow:0 6px 18px -8px currentColor; }
+
+  .ripple{
+    position:absolute; border-radius:50%; background:rgba(255,255,255,0.5);
+    transform:scale(0); animation: rippleAnim .55s ease-out forwards; pointer-events:none;
+  }
+  @keyframes rippleAnim{ to{ transform:scale(3.2); opacity:0; } }
+
+  footer{
+    position:relative; z-index:1; text-align:center; padding:26px 20px 34px;
+    color:var(--text-faint); font-size:0.8rem; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .footer-dot{ width:5px; height:5px; border-radius:50%; background:var(--yoga); animation: pulseDot 2.4s ease-in-out infinite; }
+
+  /* ===================== FULLSCREEN PDF VIEWER ===================== */
+  .viewer{
+    position:fixed; inset:0; z-index:50; display:flex;
+    align-items:stretch; justify-content:center;
+    background:#000;
+  }
+  .viewer[hidden]{ display:none; }
+
+  .viewer-backdrop{
+    position:absolute; inset:0; background:#000;
+  }
+
+  .viewer-panel{
+    position:relative; width:100%; height:100dvh;
+    background:#111; display:flex; flex-direction:column;
+    overflow:hidden; animation:viewerIn .25s var(--ease);
+  }
+  @keyframes viewerIn{
+    from{opacity:0; transform:scale(.985)}
+    to{opacity:1; transform:scale(1)}
+  }
+
+  .sheet-handle{ display:none; }
+
+  .viewer-head{
+    position:absolute; z-index:3; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:10px 12px;
+    background:linear-gradient(to bottom,rgba(0,0,0,.72),rgba(0,0,0,0));
+    border:0; pointer-events:none;
+  }
+
+  #viewerTitle{
+    max-width:42vw; font-size:.78rem; font-weight:600;
+    color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    text-shadow:0 1px 3px #000; pointer-events:auto;
+  }
+
+  .viewer-actions{
+    display:flex; gap:7px; flex-shrink:0; pointer-events:auto;
+  }
+
+  .viewer-actions .btn{
+    width:38px; height:38px; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:10px; background:rgba(20,20,20,.68);
+    color:#fff; border:1px solid rgba(255,255,255,.16);
+    backdrop-filter:blur(8px);
+    font-size:0;
+  }
+  .viewer-actions .btn:hover{background:rgba(50,50,50,.85);}
+
+  /* Small top controls: back, download, close */
+  #viewerBack::before{
+    content:"‹"; font-size:28px; line-height:1; font-weight:300;
+  }
+  #viewerDownload::before{
+    content:"↓"; font-size:22px; line-height:1;
+  }
+  #viewerClose::before{
+    content:"×"; font-size:25px; line-height:1; font-weight:300;
+  }
+
+  .viewer-body{
+    flex:1; position:relative; background:#fff; min-height:0;
+  }
+
+  #viewerFrame{
+    position:absolute; inset:0; width:100%; height:100%;
+    border:0; opacity:0; transition:opacity .25s var(--ease);
+    background:#fff;
+  }
+  #viewerFrame.loaded{opacity:1;}
+
+  .viewer-spinner{
+    position:absolute; inset:0; z-index:2;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; transition:opacity .25s var(--ease);
+  }
+  .viewer-spinner .spinner{
+    border-color:#ddd; border-top-color:var(--yoga);
+  }
+
+  @media (max-width:600px){
+    .viewer-head{padding:8px 9px;}
+    #viewerTitle{max-width:35vw; font-size:.7rem;}
+    .viewer-actions{gap:5px;}
+    .viewer-actions .btn{width:36px;height:36px;border-radius:9px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    .badge,.breath-wrap,h1,h1 .word,header p,.subject-card,.file-row,.status,.skeleton-row{ opacity:1 !important; transform:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="grid-overlay"></div>
+  <div id="particles"></div>
+</div>
+
+<header>
+  <div class="badge"><span class="badge-dot"></span>PYQ · Question Papers</div>
+
+  <div class="breath-wrap">
+    <svg class="breath" viewBox="0 0 100 100">
+      <circle class="b4" cx="50" cy="50" r="46"/>
+      <circle class="b1" cx="50" cy="50" r="22"/>
+      <circle class="b2" cx="50" cy="50" r="34"/>
+      <circle class="b3" cx="50" cy="50" r="5"/>
+    </svg>
+    <div class="orbit-dot"></div>
+    <div class="orbit-dot d2"></div>
+  </div>
+
+  <h1><span class="word" style="animation-delay:.2s">Your</span> <span class="word" style="animation-delay:.3s">Question</span> <span class="word" style="animation-delay:.4s">Papers</span></h1>
+  <p>Pick a subject to view or download</p>
+</header>
+
+<section class="subjects">
+  <div class="subject-card dys-03" data-folder="DYS-03" data-accent="dys-03">
+    <div class="icon-wrap">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21C6 21 3 16 4 9c6-1 11 2 12 7 .6 3-1 5-4 5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M6 18c3-5 7-8 12-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="subject-name hindi">आहार एवं पोषण विज्ञान</div>
+    <div class="subject-code">DYS-03</div>
+    <div class="count-pill" id="pill-DYS-03">—</div>
+  </div>
+
+  <div class="subject-card dys-04" data-folder="DYS-04" data-accent="dys-04">
+    <div class="icon-wrap">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
+        <path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="subject-name hindi">हठयोग एवं योगविज्ञान</div>
+    <div class="subject-code">DYS-04</div>
+    <div class="count-pill" id="pill-DYS-04">—</div>
+  </div>
+</section>
+
+<main id="main">
+  <div class="status">Tap a subject above to see its papers.</div>
+</main>
+
+<footer><span class="footer-dot"></span>alokbhateshwar &nbsp;·&nbsp; 2026</footer>
+
+<!-- In-page PDF viewer -->
+<div class="viewer" id="viewer" hidden>
+  <div class="viewer-backdrop" id="viewerBackdrop"></div>
+  <div class="viewer-panel">
+    <div class="sheet-handle"></div>
+    <div class="viewer-head">
+      <span id="viewerTitle">—</span>
+      <div class="viewer-actions">
+        <button id="viewerBack" class="btn btn-view" aria-label="Back" title="Back"></button>
+        <a id="viewerDownload" class="btn btn-view" download aria-label="Download" title="Download"></a>
+        <button id="viewerClose" class="btn btn-view" aria-label="Close PDF" title="Close PDF"></button>
+      </div>
+    </div>
+    <div class="viewer-body">
+      <div class="viewer-spinner" id="viewerSpinner"><div class="spinner"></div></div>
+      <iframe id="viewerFrame" title="PDF viewer"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG — sirf ye do lines apne hisaab se badlo:
+   ========================================================= */
+const GITHUB_USER = "alokbhateshwar";
+const GITHUB_REPO  = "dys-pyq";
+
+/* floating background particles */
+(function initParticles(){
+  const wrap = document.getElementById("particles");
+  const count = window.innerWidth < 640 ? 10 : 18;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    const size = 2 + Math.random() * 3;
+    p.style.width = size + "px";
+    p.style.height = size + "px";
+    p.style.left = Math.random() * 100 + "%";
+    p.style.setProperty("--drift", (Math.random() * 60 - 30) + "px");
+    const duration = 10 + Math.random() * 10;
+    p.style.animationDuration = duration + "s";
+    p.style.animationDelay = (Math.random() * duration) + "s";
+    p.style.background = i % 2 === 0 ? "#5fa98a" : "#e8a33d";
+    wrap.appendChild(p);
+  }
+})();
+
+/* ripple effect on all buttons */
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".btn");
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const ripple = document.createElement("span");
+  const size = Math.max(rect.width, rect.height);
+  ripple.className = "ripple";
+  ripple.style.width = ripple.style.height = size + "px";
+  ripple.style.left = (e.clientX - rect.left - size / 2) + "px";
+  ripple.style.top = (e.clientY - rect.top - size / 2) + "px";
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 550);
+});
+
+/* subtle 3D tilt on subject cards (desktop only) */
+if (window.matchMedia("(hover: hover)").matches) {
+  document.querySelectorAll(".subject-card").forEach(card => {
+    card.addEventListener("mousemove", (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `translateY(-6px) rotateX(${(-y * 8).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg)`;
+    });
+    card.addEventListener("mouseleave", () => { card.style.transform = ""; });
+  });
+}
+
+const main = document.getElementById("main");
+const cards = document.querySelectorAll(".subject-card");
+const viewer = document.getElementById("viewer");
+const viewerFrame = document.getElementById("viewerFrame");
+const viewerSpinner = document.getElementById("viewerSpinner");
+const viewerTitle = document.getElementById("viewerTitle");
+const viewerDownload = document.getElementById("viewerDownload");
+const viewerClose = document.getElementById("viewerClose");
+const viewerBack = document.getElementById("viewerBack");
+const viewerBackdrop = document.getElementById("viewerBackdrop");
+
+cards.forEach(card => {
+  card.addEventListener("click", () => {
+    cards.forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+    loadFolder(card.dataset.folder, card.dataset.accent);
+  });
+});
+
+async function loadFolder(folder, accent) {
+  main.innerHTML = `
+    <div class="skeleton-row" style="animation-delay:0ms"></div>
+    <div class="skeleton-row" style="animation-delay:80ms"></div>
+    <div class="skeleton-row" style="animation-delay:160ms"></div>`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) throw new Error("not found");
+    const items = await res.json();
+    const pdfs = items.filter(i => i.type === "file" && i.name.toLowerCase().endsWith(".pdf"));
+
+    const pill = document.getElementById("pill-" + folder);
+    if (pill) pill.textContent = pdfs.length;
+
+    if (pdfs.length === 0) {
+      main.innerHTML = `<div class="status">No PDFs in ${folder} yet. Add files to the "${folder}" folder.</div>`;
+      return;
+    }
+
+    const list = document.createElement("div");
+    list.className = "file-list";
+    pdfs.forEach((file, i) => {
+      const row = document.createElement("div");
+      row.className = "file-row";
+      row.style.animationDelay = Math.min(i * 50, 400) + "ms";
+      const name = file.name.replace(/\.pdf$/i, "");
+      row.innerHTML = `
+        <span class="file-main">
+          <span class="file-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l5 5v15H6V2z" stroke="currentColor" stroke-width="1.5"/><path d="M15 2v5h5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </span>
+          <span class="file-name">${escapeHTML(name)}</span>
+        </span>
+        <span class="file-actions">
+          <button class="btn btn-view" data-action="view">View</button>
+          <a class="btn btn-dl ${accent}" href="${file.download_url}" download>Download</a>
+        </span>`;
+      row.querySelector('[data-action="view"]').addEventListener("click", () =>
+        openViewer(name, file.download_url)
+      );
+      list.appendChild(row);
+    });
+    main.innerHTML = "";
+    main.appendChild(list);
+  } catch (err) {
+    main.innerHTML = `<div class="status">Could not load files. Check GITHUB_USER / GITHUB_REPO in the code, and that the "${folder}" folder exists in the repo.</div>`;
+  }
+}
+
+function openViewer(title, url) {
+  viewerTitle.textContent = title;
+  viewerFrame.classList.remove("loaded");
+  viewerSpinner.style.opacity = "1";
+  viewerFrame.src = url;
+  viewerDownload.href = url;
+  viewer.hidden = false;
+  document.body.style.overflow = "hidden";
+
+  // Try native fullscreen where supported.
+  const panel = document.querySelector(".viewer-panel");
+  if (panel && panel.requestFullscreen) {
+    panel.requestFullscreen().catch(() => {});
+  }
+}
+viewerFrame.addEventListener("load", () => {
+  viewerFrame.classList.add("loaded");
+  viewerSpinner.style.opacity = "0";
+});
+function closeViewer() {
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+  }
+  viewer.hidden = true;
+  viewerFrame.src = "";
+  document.body.style.overflow = "";
+}
+viewerClose.addEventListener("click", closeViewer);
+viewerBack.addEventListener("click", closeViewer);
 viewerBackdrop.addEventListener("click", closeViewer);
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !viewer.hidden) closeViewer(); });
 
