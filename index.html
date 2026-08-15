@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PYQ Papers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* =======================================================
+     CONFIG — sirf ye do line badlo (upar JS me bhi dekhein)
+     ======================================================= */
+
+  :root{
+    --bg: #12141c;
+    --panel: #1c2030;
+    --panel-hi: #262b3d;
+    --border: rgba(237,234,225,0.09);
+    --text: #edeae1;
+    --text-dim: #9ca0b3;
+    --text-faint: #676c82;
+    --nutrition: #5fa98a;
+    --nutrition-soft: rgba(95,169,138,0.14);
+    --yoga: #e8a33d;
+    --yoga-soft: rgba(232,163,61,0.14);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Inter",sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .hindi{ font-family:"Noto Serif Devanagari", serif; }
+
+  body::before{
+    content:""; position:fixed; inset:-20% -10% auto -10%; height:60vh;
+    background:
+      radial-gradient(600px 320px at 20% 0%, rgba(95,169,138,0.10), transparent 60%),
+      radial-gradient(560px 300px at 85% 8%, rgba(232,163,61,0.10), transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  header{ position:relative; z-index:1; text-align:center; padding:56px 20px 28px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:8px; font-size:0.72rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--yoga); margin-bottom:18px; font-weight:600;
+  }
+  .breath{ width:64px; height:64px; margin:0 auto 20px; }
+  .breath circle{ fill:none; stroke-width:1.4; transform-origin:32px 32px; }
+  .b1{ stroke:var(--nutrition); animation:breathe 6s ease-in-out infinite; }
+  .b2{ stroke:var(--yoga); animation:breathe 6s ease-in-out infinite 0.4s; }
+  @keyframes breathe{
+    0%,100%{ transform:scale(0.6); opacity:0.3; }
+    50%{ transform:scale(1); opacity:0.9; }
+  }
+  h1{ font-size:clamp(1.6rem,4vw,2.2rem); margin:0 0 10px; font-weight:700; }
+  header p{ color:var(--text-dim); margin:0; font-size:0.95rem; }
+
+  .subjects{
+    position:relative; z-index:1;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:18px;
+    padding:20px 20px 10px; max-width:760px; margin:0 auto;
+  }
+  .subject-card{
+    flex:1 1 260px; max-width:320px;
+    background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    padding:26px 20px; cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    transition:transform .25s cubic-bezier(.22,.68,.16,1), border-color .25s, box-shadow .25s;
+    opacity:0; transform:translateY(16px);
+    animation:rise .6s cubic-bezier(.22,.68,.16,1) forwards;
+  }
+  .subject-card:nth-child(2){ animation-delay:.1s; }
+  .subject-card:hover{ transform:translateY(-4px); }
+  .subject-card.dys-03:hover{ border-color:var(--nutrition); box-shadow:0 16px 34px -20px var(--nutrition); }
+  .subject-card.dys-04:hover{ border-color:var(--yoga); box-shadow:0 16px 34px -20px var(--yoga); }
+  .subject-card.active.dys-03{ border-color:var(--nutrition); }
+  .subject-card.active.dys-04{ border-color:var(--yoga); }
+
+  .icon-wrap{
+    width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  }
+  .dys-03 .icon-wrap{ background:var(--nutrition-soft); color:var(--nutrition); }
+  .dys-04 .icon-wrap{ background:var(--yoga-soft); color:var(--yoga); }
+
+  .subject-name{ font-size:1.05rem; font-weight:700; }
+  .subject-code{ font-size:0.72rem; color:var(--text-faint); letter-spacing:0.06em; }
+
+  @keyframes rise{ from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
+
+  main{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding:30px 20px 60px; min-height:120px; }
+
+  .status{ text-align:center; color:var(--text-faint); font-size:0.9rem; padding:30px 10px; }
+
+  .file-list{ display:flex; flex-direction:column; gap:10px; }
+  .file-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px;
+    opacity:0; transform:translateY(10px);
+    animation:rise .45s cubic-bezier(.22,.68,.16,1) forwards;
+  }
+  .file-name{ font-size:0.92rem; font-weight:500; word-break:break-word; }
+  .file-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .btn{
+    border:none; cursor:pointer; text-decoration:none; font-family:inherit;
+    font-size:0.8rem; font-weight:600; padding:8px 14px; border-radius:8px;
+    transition:opacity .2s, transform .2s;
+  }
+  .btn:active{ transform:scale(0.96); }
+  .btn-view{ background:var(--panel-hi); color:var(--text); }
+  .btn-view:hover{ opacity:0.8; }
+  .btn-dl.dys-03{ background:var(--nutrition); color:#0e1712; }
+  .btn-dl.dys-04{ background:var(--yoga); color:#1a1206; }
+  .btn-dl:hover{ opacity:0.88; }
+
+  footer{
+    position:relative; z-index:1; text-align:center; padding:26px 20px 34px;
+    color:var(--text-faint); font-size:0.8rem; border-top:1px solid var(--border);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .b1,.b2,.subject-card,.file-row{ animation:none !important; opacity:1 !important; transform:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">PYQ · Question Papers</div>
+  <svg class="breath" viewBox="0 0 64 64">
+    <circle class="b1" cx="32" cy="32" r="16"/>
+    <circle class="b2" cx="32" cy="32" r="26"/>
+  </svg>
+  <h1>Your Question Papers</h1>
+  <p>Pick a subject to view or download</p>
+</header>
+
+<section class="subjects">
+  <div class="subject-card dys-03" data-folder="DYS-03" data-accent="dys-03">
+    <div class="icon-wrap">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21C6 21 3 16 4 9c6-1 11 2 12 7 .6 3-1 5-4 5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M6 18c3-5 7-8 12-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="subject-name hindi">आहार एवं पोषण विज्ञान</div>
+    <div class="subject-code">DYS-03</div>
+  </div>
+
+  <div class="subject-card dys-04" data-folder="DYS-04" data-accent="dys-04">
+    <div class="icon-wrap">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
+        <path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="subject-name hindi">हठयोग एवं योगविज्ञान</div>
+    <div class="subject-code">DYS-04</div>
+  </div>
+</section>
+
+<main id="main">
+  <div class="status">Click a subject above to see its papers.</div>
+</main>
+
+<footer>alokbhateshwar &nbsp;·&nbsp; 2026</footer>
+
+<script>
+/* =========================================================
+   CONFIG — sirf ye do lines apne hisaab se badlo:
+   GITHUB_USER  -> aapka GitHub username
+   GITHUB_REPO  -> jis repo me DYS-03 aur DYS-04 folder hain
+   ========================================================= */
+const GITHUB_USER = "yourusername";
+const GITHUB_REPO  = "your-repo-name";
+
+const main = document.getElementById("main");
+const cards = document.querySelectorAll(".subject-card");
+
+cards.forEach(card => {
+  card.addEventListener("click", () => {
+    cards.forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+    loadFolder(card.dataset.folder, card.dataset.accent);
+  });
+});
+
+async function loadFolder(folder, accent) {
+  main.innerHTML = `<div class="status">Loading…</div>`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) throw new Error("not found");
+    const items = await res.json();
+    const pdfs = items.filter(i => i.type === "file" && i.name.toLowerCase().endsWith(".pdf"));
+
+    if (pdfs.length === 0) {
+      main.innerHTML = `<div class="status">No PDFs in ${folder} yet. Add files to the "${folder}" folder.</div>`;
+      return;
+    }
+
+    const list = document.createElement("div");
+    list.className = "file-list";
+    pdfs.forEach((file, i) => {
+      const row = document.createElement("div");
+      row.className = "file-row";
+      row.style.animationDelay = Math.min(i * 40, 320) + "ms";
+      const name = file.name.replace(/\.pdf$/i, "");
+      row.innerHTML = `
+        <span class="file-name">${escapeHTML(name)}</span>
+        <span class="file-actions">
+          <a class="btn btn-view" href="${file.download_url}" target="_blank" rel="noopener">View</a>
+          <a class="btn btn-dl ${accent}" href="${file.download_url}" download>Download</a>
+        </span>`;
+      list.appendChild(row);
+    });
+    main.innerHTML = "";
+    main.appendChild(list);
+  } catch (err) {
+    main.innerHTML = `<div class="status">Could not load files. Check GITHUB_USER / GITHUB_REPO in the code, and that the "${folder}" folder exists in the repo.</div>`;
+  }
+}
+
+function escapeHTML(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
